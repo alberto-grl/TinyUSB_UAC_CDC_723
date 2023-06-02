@@ -1,5 +1,5 @@
 
-723TinyUSB3.elf:     file format elf32-littlearm
+TinyUSB_UAC_CDC_723.elf:     file format elf32-littlearm
 
 Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
@@ -31,13 +31,13 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  13 .debug_macro  0003463d  00000000  00000000  0003f358  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 14 .debug_line   00015f29  00000000  00000000  00073995  2**0
+ 14 .debug_line   000160b1  00000000  00000000  00073995  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 15 .debug_str    0014d47e  00000000  00000000  000898be  2**0
+ 15 .debug_str    0014d486  00000000  00000000  00089a46  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 16 .comment      00000050  00000000  00000000  001d6d3c  2**0
+ 16 .comment      00000050  00000000  00000000  001d6ecc  2**0
                   CONTENTS, READONLY
- 17 .debug_frame  00004954  00000000  00000000  001d6d8c  2**2
+ 17 .debug_frame  00004954  00000000  00000000  001d6f1c  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
