@@ -50,3 +50,7 @@ Module.symvers
 Mkfile.old
 dkms.conf
 /.metadata/
+
+desktop.ini
+*.cyclo
+*.list

@@ -20,6 +20,8 @@ Porting to a new STM32H device should be easy:
  
  You should be done with this, YMMV, as of today the TinyUSB library is not really documented.
  
+ Other informations are here: https://github.com/hathach/tinyusb/discussions/633
+ 
  Some advice:
  
  If the USB descriptors are changed, better change the serial number of the device, or the host OS will use a not updated, cached configuration for it and all kind of 
