@@ -56,7 +56,6 @@
 /* USER CODE BEGIN Includes */
 #include "math.h"
 #include "tusb.h"
-#include "stm32h723xx.h"
 //#include "board.h"
 #include "usb_descriptors.h"
 /* USER CODE END Includes */
@@ -118,7 +117,7 @@ enum
 
 /* Private variables ---------------------------------------------------------*/
 
-PCD_HandleTypeDef hpcd_USB_OTG_FS;
+PCD_HandleTypeDef hpcd_USB_OTG_HS;
 
 /* USER CODE BEGIN PV */
 
