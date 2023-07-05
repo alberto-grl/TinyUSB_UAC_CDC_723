@@ -117,7 +117,9 @@ enum
 
 /* Private variables ---------------------------------------------------------*/
 
+TIM_HandleTypeDef htim6;
 
+PCD_HandleTypeDef hpcd_USB_OTG_HS;
 
 /* USER CODE BEGIN PV */
 
@@ -141,6 +143,7 @@ const uint8_t resolutions_per_format[CFG_TUD_AUDIO_FUNC_1_N_FORMATS] = {CFG_TUD_
 uint8_t current_resolution;
 
 volatile uint32_t AudioCounter;
+uint32_t TestGlobalVar;
 uint8_t BufferFillRequired = 1;
 uint8_t SendGreetings = 1;
 
@@ -150,6 +153,7 @@ uint8_t SendGreetings = 1;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USB_OTG_HS_PCD_Init(void);
+static void MX_TIM6_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -418,12 +422,15 @@ bool tud_audio_tx_done_pre_load_cb(uint8_t rhport, uint8_t itf, uint8_t ep_in, u
 	(void)cur_alt_setting;
 	int16_t *dst = (int16_t*)mic_buf;
 
+#if 0
+
 	for (uint16_t i = 0; i < 48000/1000; i++ )
-			{
-				*dst ++ = (int16_t)(20000.0 * sin(432.0 * 6.28 * AudioCounter++ / 48000));
-			}
+	{
+		*dst ++ = (int16_t)(20000.0 * sinf(432.0 * 6.28 * AudioCounter++ / 48000));
+	}
 	tud_audio_write((uint8_t *)mic_buf, (uint16_t) (2 * 48000 /1000));
 
+#endif
 
 
 	// This callback could be used to fill microphone data separately
@@ -460,10 +467,10 @@ void cdc_task(void)
 {
 	// connected() check for DTR bit
 	// Most but not all terminal client set this when making connection
-	 if ( tud_cdc_connected() )
+	if ( tud_cdc_connected() )
 	{
-//TODO: terminal shows message only after a key is pressed. Why?
- 		if (SendGreetings && tud_cdc_write_available())
+		//TODO: terminal shows message only after a key is pressed. Why?
+		if (SendGreetings && tud_cdc_write_available())
 		{
 			tud_cdc_write("\n\rHello!\n\r", 8);
 			tud_cdc_write_flush();
@@ -495,7 +502,7 @@ void cdc_task(void)
 void audio_task(void)
 {
 
-#ifdef LOOPBACK_EXAMPLE
+#if 1
 
 	// When new data arrived, copy data from speaker buffer, to microphone buffer
 	// and send it over
@@ -565,6 +572,18 @@ void led_blinking_task(void)
 	led_state = 1 - led_state;
 }
 
+void  HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
+	if(GPIO_Pin == GPIO_PIN_13) {
+		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, 1);
+		tud_task();  //about 2.5 uSec
+		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, 0);
+		audio_task();
+		cdc_task();
+		TestGlobalVar++;
+		//			AudioCounter = TestGlobalVar;
+	}
+
+}
 
 /* USER CODE END 0 */
 
@@ -594,18 +613,20 @@ int main(void)
 
 	/* USER CODE END SysInit */
 
-  /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-  MX_USB_OTG_HS_PCD_Init();
-  /* USER CODE BEGIN 2 */
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, 1);
-  HAL_Delay(1000);
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, 0);
-   HAL_Delay(1000);
+	/* Initialize all configured peripherals */
+	MX_GPIO_Init();
+	MX_USB_OTG_HS_PCD_Init();
+	MX_TIM6_Init();
+	/* USER CODE BEGIN 2 */
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, 1);
+	HAL_Delay(1000);
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, 0);
+	HAL_Delay(1000);
 	//  board_init();
 	TU_ASSERT(tusb_init());
+	//	HAL_TIM_Base_Start_IT(&htim6);
 	// init device stack on configured roothub port
-//	tud_init(BOARD_TUD_RHPORT);
+	//	tud_init(BOARD_TUD_RHPORT);
 
 	/* USER CODE END 2 */
 
@@ -616,9 +637,15 @@ int main(void)
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */
-		tud_task();
+#if 0
+		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, 1);
+		tud_task();  //about 2.5 uSec
+		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, 0);
 		audio_task();
 		cdc_task();
+		TestGlobalVar++;
+		AudioCounter = TestGlobalVar;
+#endif
 	}
 	/* USER CODE END 3 */
 }
@@ -683,6 +710,44 @@ void SystemClock_Config(void)
 }
 
 /**
+ * @brief TIM6 Initialization Function
+ * @param None
+ * @retval None
+ */
+static void MX_TIM6_Init(void)
+{
+
+	/* USER CODE BEGIN TIM6_Init 0 */
+
+	/* USER CODE END TIM6_Init 0 */
+
+	TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+	/* USER CODE BEGIN TIM6_Init 1 */
+
+	/* USER CODE END TIM6_Init 1 */
+	htim6.Instance = TIM6;
+	htim6.Init.Prescaler = 250;
+	htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
+	htim6.Init.Period = 50;
+	htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+	if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
+	{
+		Error_Handler();
+	}
+	sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+	sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+	if (HAL_TIMEx_MasterConfigSynchronization(&htim6, &sMasterConfig) != HAL_OK)
+	{
+		Error_Handler();
+	}
+	/* USER CODE BEGIN TIM6_Init 2 */
+
+	/* USER CODE END TIM6_Init 2 */
+
+}
+
+/**
  * @brief USB_OTG_HS Initialization Function
  * @param None
  * @retval None
@@ -725,26 +790,37 @@ static void MX_USB_OTG_HS_PCD_Init(void)
  */
 static void MX_GPIO_Init(void)
 {
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
-/* USER CODE BEGIN MX_GPIO_Init_1 */
-/* USER CODE END MX_GPIO_Init_1 */
+	GPIO_InitTypeDef GPIO_InitStruct = {0};
+	/* USER CODE BEGIN MX_GPIO_Init_1 */
+	/* USER CODE END MX_GPIO_Init_1 */
 
 	/* GPIO Ports Clock Enable */
 	__HAL_RCC_GPIOH_CLK_ENABLE();
+	__HAL_RCC_GPIOD_CLK_ENABLE();
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
+	/*Configure GPIO pin Output Level */
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : PA8 */
-  GPIO_InitStruct.Pin = GPIO_PIN_8;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+	/*Configure GPIO pin : PD13 */
+	GPIO_InitStruct.Pin = GPIO_PIN_13;
+	GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
+	HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-/* USER CODE BEGIN MX_GPIO_Init_2 */
-/* USER CODE END MX_GPIO_Init_2 */
+	/*Configure GPIO pin : PA8 */
+	GPIO_InitStruct.Pin = GPIO_PIN_8;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+	/* EXTI interrupt init*/
+	HAL_NVIC_SetPriority(EXTI15_10_IRQn, 3, 0);
+	HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+
+	/* USER CODE BEGIN MX_GPIO_Init_2 */
+	/* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */

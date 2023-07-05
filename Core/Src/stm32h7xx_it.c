@@ -58,6 +58,7 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
+extern TIM_HandleTypeDef htim6;
 extern PCD_HandleTypeDef hpcd_USB_OTG_HS;
 /* USER CODE BEGIN EV */
 
@@ -202,12 +203,63 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
+  * @brief This function handles EXTI line[15:10] interrupts.
+  */
+void EXTI15_10_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI15_10_IRQn 0 */
+
+  /* USER CODE END EXTI15_10_IRQn 0 */
+  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_13);
+  /* USER CODE BEGIN EXTI15_10_IRQn 1 */
+
+  /* USER CODE END EXTI15_10_IRQn 1 */
+}
+
+/**
+  * @brief This function handles TIM6 global interrupt, DAC1_CH1 and DAC1_CH2 underrun error interrupts.
+  */
+void TIM6_DAC_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM6_DAC_IRQn 0 */
+
+#if 1
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, 1);
+			tud_task();  //about 2.5 uSec when returns immediately, about 100 uSec every mSec, USB interrupt
+			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, 0);
+			audio_task();
+			cdc_task();
+//			TestGlobalVar++;
+//			AudioCounter = TestGlobalVar;
+
+#endif
+  /* USER CODE END TIM6_DAC_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim6);
+  /* USER CODE BEGIN TIM6_DAC_IRQn 1 */
+
+  /* USER CODE END TIM6_DAC_IRQn 1 */
+}
+
+/**
   * @brief This function handles USB On The Go HS global interrupt.
   */
 void OTG_HS_IRQHandler(void)
 {
   /* USER CODE BEGIN OTG_HS_IRQn 0 */
-	tud_int_handler(BOARD_DEVICE_RHPORT_NUM);
+
+#if 0
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, 1);
+			tud_task();  //about 2.5 uSec
+			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, 0);
+//			audio_task();
+//			cdc_task();
+//			TestGlobalVar++;
+//			AudioCounter = TestGlobalVar;
+
+#endif
+			tud_int_handler(BOARD_DEVICE_RHPORT_NUM);
+
+			__HAL_GPIO_EXTI_GENERATE_SWIT(GPIO_PIN_13);
 	return;
   /* USER CODE END OTG_HS_IRQn 0 */
   HAL_PCD_IRQHandler(&hpcd_USB_OTG_HS);
