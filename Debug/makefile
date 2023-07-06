@@ -107,8 +107,8 @@ all: main-build
 main-build: TinyUSB_UAC_CDC_723.elf secondary-outputs
 
 # Tool invocations
-TinyUSB_UAC_CDC_723.elf TinyUSB_UAC_CDC_723.map: $(OBJS) $(USER_OBJS) C:\Users\albytest\TinyUSB723\TinyUSB_UAC_CDC_723\STM32H723VGTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "TinyUSB_UAC_CDC_723.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m7 -T"C:\Users\albytest\TinyUSB723\TinyUSB_UAC_CDC_723\STM32H723VGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="TinyUSB_UAC_CDC_723.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+TinyUSB_UAC_CDC_723.elf TinyUSB_UAC_CDC_723.map: $(OBJS) $(USER_OBJS) C:\Users\alberto\Documents\USBCompositeWorkspace\TinyUSB_UAC_CDC_723\STM32H723VGTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "TinyUSB_UAC_CDC_723.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m7 -T"C:\Users\alberto\Documents\USBCompositeWorkspace\TinyUSB_UAC_CDC_723\STM32H723VGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="TinyUSB_UAC_CDC_723.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
